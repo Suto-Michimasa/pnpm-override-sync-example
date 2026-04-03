@@ -23,4 +23,4 @@ jobs:
           run_install: false
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --prod --ignore-registry-errors
+      - run: pnpm audit --ignore-registry-errors
