@@ -11,13 +11,5 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "vitest": "catalog:"
-  },
-  "pnpm": {
-    "overrides": {
-      "happy-dom": ">=20.8.9",
-      "effect": ">=3.20.0",
-      "brace-expansion": ">=2.0.3",
-      "lodash": ">=4.18.0"
-    }
   }
 }
