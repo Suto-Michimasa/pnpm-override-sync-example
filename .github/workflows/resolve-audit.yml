@@ -1,0 +1,70 @@
+name: Audit & Override Sync
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-overrides:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.tool-versions'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Sync overrides
+        run: pnpm dlx tsx .github/scripts/resolve-audit.ts
+
+      - name: Create or update PR
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed."
+            exit 0
+          fi
+
+          BRANCH="chore/auto-sync-overrides"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$BRANCH"
+
+          git add package.json pnpm-lock.yaml pnpm-workspace.yaml
+          git commit -m "chore(deps): sync pnpm overrides with audit results"
+          git push -u origin "$BRANCH" --force
+
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "Updated existing PR #$EXISTING_PR"
+          else
+            gh pr create \
+              --base main \
+              --title "chore(deps): pnpm overrides を脆弱性状況に同期" \
+              --body "$(cat <<'BODY'
+          ## 概要
+          `pnpm audit` の結果に基づき `pnpm.overrides` を自動同期
+
+          ## 判定ロジック
+          1. 既存の overrides を全て外し、依存を最新互換に更新
+          2. `pnpm audit` で残る脆弱性を検出
+          3. 修正バージョンが存在するものに override を追加
+          4. `minimumReleaseAge` で install できないものは `minimumReleaseAgeExclude` に追加してリトライ
+          5. 不要になった override と exclude は削除
+          BODY
+          )"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

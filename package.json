@@ -1,0 +1,15 @@
+{
+  "name": "pnpm-override-sync-example",
+  "private": true,
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "check": "biome check .",
+    "check/fix": "biome check --write .",
+    "test": "vitest run",
+    "test:scripts": "vitest run --config .github/scripts/vitest.config.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "vitest": "catalog:"
+  }
+}

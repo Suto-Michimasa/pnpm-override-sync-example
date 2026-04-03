@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices"],
+  "labels": ["renovate"],
+  "minimumReleaseAge": "8 days",
+  "packageRules": [
+    {
+      "matchDatasources": ["npm"],
+      "rangeStrategy": "bump",
+      "minimumReleaseAge": "8 days"
+    },
+    {
+      "groupName": "storybook",
+      "matchPackageNames": ["storybook", "@storybook/**"]
+    },
+    {
+      "groupName": "react",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"]
+    }
+  ],
+  "postUpdateOptions": ["pnpmDedupe"]
+}
