@@ -1,7 +1,10 @@
 import { execSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { collectNeeded } from './utils/override-versions.ts'
-import { applyReleaseAgeExclude } from './utils/release-age-exclude.ts'
+import {
+  applyReleaseAgeExclude,
+  parseReleaseAgeExclude,
+} from './utils/release-age-exclude.ts'
 
 const PKG_PATH = 'package.json'
 const WORKSPACE_PATH = 'pnpm-workspace.yaml'
@@ -113,7 +116,9 @@ if (!hasChanges) {
 
 console.log('\nApplying changes...')
 const installable: Record<string, string> = {}
-const excluded: string[] = []
+const excluded: string[] = parseReleaseAgeExclude(
+  readFileSync(WORKSPACE_PATH, 'utf8'),
+)
 for (const [pkg, version] of Object.entries(needed)) {
   const trial: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
   if (!trial.pnpm) {
@@ -152,5 +157,5 @@ if (Object.keys(installable).length > 0) {
   }
 }
 writePkg(final)
-updateReleaseAgeExclude(excluded)
+updateReleaseAgeExclude(excluded.filter((pkg) => installable[pkg]))
 execSync('pnpm install --lockfile-only', { stdio: 'pipe' })

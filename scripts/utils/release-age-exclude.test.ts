@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { applyReleaseAgeExclude } from './release-age-exclude'
+import {
+  applyReleaseAgeExclude,
+  parseReleaseAgeExclude,
+} from './release-age-exclude'
 
 const base = `packages:
   - 'packages/*'
@@ -51,5 +54,37 @@ minimumReleaseAgeExclude:
   test('minimumReleaseAge より前の内容は変わらない', () => {
     const result = applyReleaseAgeExclude(base, ['lodash'])
     expect(result).toContain("catalog:\n  react: \"^19.0.0\"")
+  })
+
+  test('重複するパッケージは1つにまとめる', () => {
+    const result = applyReleaseAgeExclude(base, ['lodash', 'lodash'])
+    const matches = result.match(/  - lodash/g)
+    expect(matches).toHaveLength(1)
+  })
+})
+
+describe('parseReleaseAgeExclude', () => {
+  test('exclude がある場合にパッケージ名を返す', () => {
+    const content = `${base}minimumReleaseAgeExclude:\n  - lodash\n`
+    expect(parseReleaseAgeExclude(content)).toEqual(['lodash'])
+  })
+
+  test('複数パッケージをパースする', () => {
+    const content = `${base}minimumReleaseAgeExclude:\n  - lodash\n  - axios\n`
+    expect(parseReleaseAgeExclude(content)).toEqual(['lodash', 'axios'])
+  })
+
+  test('exclude がない場合は空配列を返す', () => {
+    expect(parseReleaseAgeExclude(base)).toEqual([])
+  })
+
+  test('末尾改行なしでもパースできる', () => {
+    const content = `${base}minimumReleaseAgeExclude:\n  - lodash`
+    expect(parseReleaseAgeExclude(content)).toEqual(['lodash'])
+  })
+
+  test('CRLF でもパースできる', () => {
+    const content = `minimumReleaseAge: 10080\r\nminimumReleaseAgeExclude:\r\n  - lodash\r\n  - axios\r\n`
+    expect(parseReleaseAgeExclude(content)).toEqual(['lodash', 'axios'])
   })
 })
