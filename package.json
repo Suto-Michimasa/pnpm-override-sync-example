@@ -6,7 +6,7 @@
     "check": "biome check .",
     "check/fix": "biome check --write .",
     "test": "vitest run",
-    "test:scripts": "vitest run --config .github/scripts/vitest.config.ts"
+    "test:scripts": "vitest run --config scripts/vitest.config.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",

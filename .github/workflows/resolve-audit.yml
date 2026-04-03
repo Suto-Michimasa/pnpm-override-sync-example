@@ -27,7 +27,7 @@ jobs:
           run_install: false
 
       - name: Sync overrides
-        run: pnpm dlx tsx .github/scripts/resolve-audit.ts
+        run: pnpm dlx tsx scripts/resolve-audit.ts
 
       - name: Create or update PR
         run: |
