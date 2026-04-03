@@ -55,6 +55,12 @@ minimumReleaseAgeExclude:
     const result = applyReleaseAgeExclude(base, ['lodash'])
     expect(result).toContain("catalog:\n  react: \"^19.0.0\"")
   })
+
+  test('重複するパッケージは1つにまとめる', () => {
+    const result = applyReleaseAgeExclude(base, ['lodash', 'lodash'])
+    const matches = result.match(/  - lodash/g)
+    expect(matches).toHaveLength(1)
+  })
 })
 
 describe('parseReleaseAgeExclude', () => {
@@ -70,5 +76,15 @@ describe('parseReleaseAgeExclude', () => {
 
   test('exclude がない場合は空配列を返す', () => {
     expect(parseReleaseAgeExclude(base)).toEqual([])
+  })
+
+  test('末尾改行なしでもパースできる', () => {
+    const content = `${base}minimumReleaseAgeExclude:\n  - lodash`
+    expect(parseReleaseAgeExclude(content)).toEqual(['lodash'])
+  })
+
+  test('CRLF でもパースできる', () => {
+    const content = `minimumReleaseAge: 10080\r\nminimumReleaseAgeExclude:\r\n  - lodash\r\n  - axios\r\n`
+    expect(parseReleaseAgeExclude(content)).toEqual(['lodash', 'axios'])
   })
 })
