@@ -82,7 +82,7 @@ catalogs:
       specifier: ^8.6.0
       version: 8.6.18
     '@types/node':
-      specifier: ^22.15.0
+      specifier: ^22.19.15
       version: 22.19.15
     '@types/react':
       specifier: ^19.2.0
