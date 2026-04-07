@@ -124,40 +124,10 @@ for (let i = 0; ; i++) {
 // pnpm update が pnpm-workspace.yaml の catalog を壊すため即座に復元する
 execSync(`git checkout -- ${WORKSPACE_PATH}`, { stdio: 'pipe' })
 
-const result = audit()
-const advisories = Object.values(result.advisories ?? {})
-const needed = collectNeeded(advisories)
-
-const added = Object.keys(needed).filter((k) => !originalOverrides[k])
-const removed = Object.keys(originalOverrides).filter((k) => !needed[k])
-const kept = Object.keys(needed).filter((k) => originalOverrides[k])
-
-console.log('\nResult:')
-if (added.length > 0) {
-  console.log(`  Added: ${added.map((k) => `${k}@${needed[k]}`).join(', ')}`)
-}
-if (removed.length > 0) {
-  console.log(`  Removed: ${removed.join(', ')}`)
-}
-if (kept.length > 0) {
-  console.log(`  Kept: ${kept.map((k) => `${k}@${needed[k]}`).join(', ')}`)
-}
-
-const hasChanges =
-  added.length > 0 ||
-  removed.length > 0 ||
-  kept.some((k) => originalOverrides[k] !== needed[k])
-
-if (!hasChanges) {
-  console.log('\nNo changes needed.')
-  writePkg(original)
-  execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
-  process.exit(0)
-}
-
-console.log('\nApplying changes...')
+// Override を適用すると解決バージョンが変わり新たな脆弱性が発生する場合がある
+// （例: vite@>=7.3.2 → 8.0.3 に解決 → 8.0.x 固有の脆弱性）
+// そのため audit → 試行 install → 再 audit をイテレーションする
 const installable: Record<string, string> = {}
-// Phase 1 で追加した exclude を引き継ぐ（git checkout で YAML が復元されているため）
 const phase1Added = phase1Excluded.slice(phase1ExcludedInitialLength)
 const excluded: string[] = [
   ...parseReleaseAgeExclude(readFileSync(WORKSPACE_PATH, 'utf8')),
@@ -166,43 +136,113 @@ const excluded: string[] = [
 if (phase1Added.length > 0) {
   updateReleaseAgeExclude(excluded)
 }
-for (const [pkg, version] of Object.entries(needed)) {
-  const trial: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
-  if (!trial.pnpm) {
-    trial.pnpm = {}
+
+const MAX_AUDIT_ROUNDS = 5
+for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
+  const result = audit()
+  const advisories = Object.values(result.advisories ?? {})
+  const needed = collectNeeded(advisories)
+
+  // installable に含まれていない or バージョンが異なるものを抽出
+  const toApply: Record<string, string> = {}
+  for (const [pkg, version] of Object.entries(needed)) {
+    if (installable[pkg] !== version) {
+      toApply[pkg] = version
+    }
   }
-  trial.pnpm.overrides = { ...installable, [pkg]: version }
-  writePkg(trial)
-  try {
-    execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
-    installable[pkg] = version
-  } catch {
-    console.log(`  Retrying with minimumReleaseAgeExclude: ${pkg}@${version}`)
-    excluded.push(pkg)
-    updateReleaseAgeExclude(excluded)
+
+  if (Object.keys(toApply).length === 0) break
+
+  console.log(
+    round === 0
+      ? '\nApplying overrides...'
+      : `\nRe-audit round ${round + 1}: found additional vulnerabilities`,
+  )
+  for (const [pkg, version] of Object.entries(toApply)) {
+    console.log(`  ${pkg}@${version}`)
+  }
+
+  for (const [pkg, version] of Object.entries(toApply)) {
+    const trial: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
+    if (!trial.pnpm) {
+      trial.pnpm = {}
+    }
+    trial.pnpm.overrides = { ...installable, [pkg]: version }
+    writePkg(trial)
     try {
       execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
       installable[pkg] = version
     } catch {
-      excluded.pop()
+      console.log(
+        `  Retrying with minimumReleaseAgeExclude: ${pkg}@${version}`,
+      )
+      excluded.push(pkg)
       updateReleaseAgeExclude(excluded)
-      console.log(`  Skipped: ${pkg}@${version}`)
+      try {
+        execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+        installable[pkg] = version
+      } catch {
+        excluded.pop()
+        updateReleaseAgeExclude(excluded)
+        console.log(`  Skipped: ${pkg}@${version}`)
+      }
     }
   }
+
+  // 現在の状態を書き出して次の audit に備える
+  const current: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
+  if (Object.keys(installable).length > 0) {
+    if (!current.pnpm) {
+      current.pnpm = {}
+    }
+    current.pnpm.overrides = installable
+  } else if (current.pnpm?.overrides) {
+    delete current.pnpm.overrides
+    if (Object.keys(current.pnpm).length === 0) {
+      delete current.pnpm
+    }
+  }
+  writePkg(current)
+  updateReleaseAgeExclude(excluded.filter((p) => installable[p]))
+  execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
 }
 
-const final: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
-if (Object.keys(installable).length > 0) {
-  if (!final.pnpm) {
-    final.pnpm = {}
-  }
-  final.pnpm.overrides = installable
-} else if (final.pnpm?.overrides) {
-  delete final.pnpm.overrides
-  if (Object.keys(final.pnpm).length === 0) {
-    delete final.pnpm
-  }
+// 変更結果のログ出力
+const added = Object.keys(installable).filter((k) => !originalOverrides[k])
+const removed = Object.keys(originalOverrides).filter((k) => !installable[k])
+const updated = Object.keys(installable).filter(
+  (k) => originalOverrides[k] && originalOverrides[k] !== installable[k],
+)
+const kept = Object.keys(installable).filter(
+  (k) => originalOverrides[k] === installable[k],
+)
+
+console.log('\nResult:')
+if (added.length > 0) {
+  console.log(
+    `  Added: ${added.map((k) => `${k}@${installable[k]}`).join(', ')}`,
+  )
 }
-writePkg(final)
-updateReleaseAgeExclude(excluded.filter((pkg) => installable[pkg]))
-execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+if (removed.length > 0) {
+  console.log(`  Removed: ${removed.join(', ')}`)
+}
+if (updated.length > 0) {
+  console.log(
+    `  Updated: ${updated.map((k) => `${k}: ${originalOverrides[k]} → ${installable[k]}`).join(', ')}`,
+  )
+}
+if (kept.length > 0) {
+  console.log(
+    `  Kept: ${kept.map((k) => `${k}@${installable[k]}`).join(', ')}`,
+  )
+}
+
+const hasChanges = added.length > 0 || removed.length > 0 || updated.length > 0
+
+if (!hasChanges) {
+  console.log('\nNo changes needed.')
+  writePkg(original)
+  execSync(`git checkout -- ${WORKSPACE_PATH}`, { stdio: 'pipe' })
+  execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+  process.exit(0)
+}
