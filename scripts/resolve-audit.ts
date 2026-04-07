@@ -14,6 +14,17 @@ function updateReleaseAgeExclude(packages: string[]): void {
   writeFileSync(WORKSPACE_PATH, applyReleaseAgeExclude(content, packages))
 }
 
+const RELEASE_AGE_ERROR = 'ERR_PNPM_NO_MATURE_MATCHING_VERSION'
+
+/** stdout から minimumReleaseAge で弾かれたパッケージ名を抽出する */
+function parseReleaseAgeErrorPackage(stdout: string): string | undefined {
+  // "Version x.y.z (released N days ago) of <pkg> does not meet the minimumReleaseAge constraint"
+  const match = stdout.match(
+    /of\s+(\S+)\s+does not meet the minimumReleaseAge constraint/,
+  )
+  return match?.[1]
+}
+
 interface PackageJson {
   pnpm?: {
     overrides?: Record<string, string>
@@ -69,15 +80,45 @@ if (clean.pnpm && Object.keys(clean.pnpm).length === 0) {
 }
 writePkg(clean)
 // pnpm update -r（全パッケージ更新）は catalog の specifier を壊すため、
-// override 対象パッケージだけを指定して更新する
+// override 対象パッケージだけを指定して更新する。
+// minimumReleaseAge で弾かれる transitive 依存がある場合は
+// minimumReleaseAgeExclude に追加してリトライする。
 const overridePackageNames = Object.keys(originalOverrides)
-if (overridePackageNames.length > 0) {
-  execSync(
-    `pnpm update -r --depth Infinity ${overridePackageNames.join(' ')} --lockfile-only`,
-    { stdio: 'pipe' },
-  )
-} else {
-  execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+const phase1Excluded: string[] = parseReleaseAgeExclude(
+  readFileSync(WORKSPACE_PATH, 'utf8'),
+)
+const phase1ExcludedInitialLength = phase1Excluded.length
+
+function runUpdate(): void {
+  if (overridePackageNames.length > 0) {
+    execSync(
+      `pnpm update -r --depth Infinity ${overridePackageNames.join(' ')} --lockfile-only`,
+      { stdio: 'pipe' },
+    )
+  } else {
+    execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+  }
+}
+
+const MAX_RETRIES = 10
+for (let i = 0; ; i++) {
+  try {
+    runUpdate()
+    break
+  } catch (e: unknown) {
+    const stdout = ((e as { stdout?: Buffer }).stdout ?? '').toString()
+    const pkg = stdout.includes(RELEASE_AGE_ERROR)
+      ? parseReleaseAgeErrorPackage(stdout)
+      : undefined
+    if (!pkg || i >= MAX_RETRIES) {
+      throw e
+    }
+    console.log(
+      `  Adding ${pkg} to minimumReleaseAgeExclude and retrying...`,
+    )
+    phase1Excluded.push(pkg)
+    updateReleaseAgeExclude(phase1Excluded)
+  }
 }
 
 // pnpm update が pnpm-workspace.yaml の catalog を壊すため即座に復元する
@@ -116,9 +157,15 @@ if (!hasChanges) {
 
 console.log('\nApplying changes...')
 const installable: Record<string, string> = {}
-const excluded: string[] = parseReleaseAgeExclude(
-  readFileSync(WORKSPACE_PATH, 'utf8'),
-)
+// Phase 1 で追加した exclude を引き継ぐ（git checkout で YAML が復元されているため）
+const phase1Added = phase1Excluded.slice(phase1ExcludedInitialLength)
+const excluded: string[] = [
+  ...parseReleaseAgeExclude(readFileSync(WORKSPACE_PATH, 'utf8')),
+  ...phase1Added,
+]
+if (phase1Added.length > 0) {
+  updateReleaseAgeExclude(excluded)
+}
 for (const [pkg, version] of Object.entries(needed)) {
   const trial: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
   if (!trial.pnpm) {
