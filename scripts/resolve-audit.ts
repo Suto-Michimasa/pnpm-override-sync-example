@@ -69,13 +69,22 @@ if (clean.pnpm && Object.keys(clean.pnpm).length === 0) {
 }
 writePkg(clean)
 // pnpm update -r（全パッケージ更新）は catalog の specifier を壊すため、
-// override 対象パッケージだけを指定して更新する
+// override 対象パッケージだけを指定して更新する。
+// ただし transitive 依存のみのパッケージは pnpm update で解決できず
+// エラーになる場合があるため、失敗時は pnpm install にフォールバックする。
 const overridePackageNames = Object.keys(originalOverrides)
 if (overridePackageNames.length > 0) {
-  execSync(
-    `pnpm update -r --depth Infinity ${overridePackageNames.join(' ')} --lockfile-only`,
-    { stdio: 'pipe' },
-  )
+  try {
+    execSync(
+      `pnpm update -r --depth Infinity ${overridePackageNames.join(' ')} --lockfile-only`,
+      { stdio: 'pipe' },
+    )
+  } catch {
+    console.log(
+      'pnpm update failed for override packages, falling back to pnpm install...',
+    )
+    execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+  }
 } else {
   execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
 }
