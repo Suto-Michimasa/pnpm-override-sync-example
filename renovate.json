@@ -1,6 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices"],
+  "automerge": true,
   "labels": ["renovate"],
   "minimumReleaseAge": "8 days",
   "packageRules": [
@@ -8,6 +9,10 @@
       "matchDatasources": ["npm"],
       "rangeStrategy": "bump",
       "minimumReleaseAge": "8 days"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false
     },
     {
       "groupName": "storybook",
