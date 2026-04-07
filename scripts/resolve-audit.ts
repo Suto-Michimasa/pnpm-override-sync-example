@@ -16,9 +16,7 @@ function updateReleaseAgeExclude(packages: string[]): void {
 
 const RELEASE_AGE_ERROR = 'ERR_PNPM_NO_MATURE_MATCHING_VERSION'
 
-/** stdout から minimumReleaseAge で弾かれたパッケージ名を抽出する */
 function parseReleaseAgeErrorPackage(stdout: string): string | undefined {
-  // "Version x.y.z (released N days ago) of <pkg> does not meet the minimumReleaseAge constraint"
   const match = stdout.match(
     /of\s+(\S+)\s+does not meet the minimumReleaseAge constraint/,
   )
@@ -81,8 +79,6 @@ if (clean.pnpm && Object.keys(clean.pnpm).length === 0) {
 writePkg(clean)
 // pnpm update -r（全パッケージ更新）は catalog の specifier を壊すため、
 // override 対象パッケージだけを指定して更新する。
-// minimumReleaseAge で弾かれる transitive 依存がある場合は
-// minimumReleaseAgeExclude に追加してリトライする。
 const overridePackageNames = Object.keys(originalOverrides)
 const phase1Excluded: string[] = parseReleaseAgeExclude(
   readFileSync(WORKSPACE_PATH, 'utf8'),
@@ -110,7 +106,7 @@ for (let i = 0; ; i++) {
     const pkg = stdout.includes(RELEASE_AGE_ERROR)
       ? parseReleaseAgeErrorPackage(stdout)
       : undefined
-    if (!pkg || i >= MAX_RETRIES) {
+    if (!pkg || i + 1 >= MAX_RETRIES) {
       throw e
     }
     console.log(
@@ -124,9 +120,6 @@ for (let i = 0; ; i++) {
 // pnpm update が pnpm-workspace.yaml の catalog を壊すため即座に復元する
 execSync(`git checkout -- ${WORKSPACE_PATH}`, { stdio: 'pipe' })
 
-// Override を適用すると解決バージョンが変わり新たな脆弱性が発生する場合がある
-// （例: vite@>=7.3.2 → 8.0.3 に解決 → 8.0.x 固有の脆弱性）
-// そのため audit → 試行 install → 再 audit をイテレーションする
 const installable: Record<string, string> = {}
 const phase1Added = phase1Excluded.slice(phase1ExcludedInitialLength)
 const excluded: string[] = [
@@ -136,6 +129,7 @@ const excluded: string[] = [
 if (phase1Added.length > 0) {
   updateReleaseAgeExclude(excluded)
 }
+const scriptAddedExcludes = new Set<string>(phase1Added)
 
 const MAX_AUDIT_ROUNDS = 5
 for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
@@ -143,7 +137,6 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
   const advisories = Object.values(result.advisories ?? {})
   const needed = collectNeeded(advisories)
 
-  // installable に含まれていない or バージョンが異なるものを抽出
   const toApply: Record<string, string> = {}
   for (const [pkg, version] of Object.entries(needed)) {
     if (installable[pkg] !== version) {
@@ -177,19 +170,20 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
         `  Retrying with minimumReleaseAgeExclude: ${pkg}@${version}`,
       )
       excluded.push(pkg)
+      scriptAddedExcludes.add(pkg)
       updateReleaseAgeExclude(excluded)
       try {
         execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
         installable[pkg] = version
       } catch {
-        excluded.pop()
+        const removed = excluded.pop()!
+        scriptAddedExcludes.delete(removed)
         updateReleaseAgeExclude(excluded)
         console.log(`  Skipped: ${pkg}@${version}`)
       }
     }
   }
 
-  // 現在の状態を書き出して次の audit に備える
   const current: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
   if (Object.keys(installable).length > 0) {
     if (!current.pnpm) {
@@ -203,11 +197,19 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
     }
   }
   writePkg(current)
-  updateReleaseAgeExclude(excluded.filter((p) => installable[p]))
+  updateReleaseAgeExclude(
+    excluded.filter((p) => !scriptAddedExcludes.has(p) || installable[p]),
+  )
   execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+
+  if (round + 1 === MAX_AUDIT_ROUNDS) {
+    console.error(
+      `\nWARNING: reached max audit rounds (${MAX_AUDIT_ROUNDS}). Unresolved vulnerabilities may remain.`,
+    )
+    process.exitCode = 1
+  }
 }
 
-// 変更結果のログ出力
 const added = Object.keys(installable).filter((k) => !originalOverrides[k])
 const removed = Object.keys(originalOverrides).filter((k) => !installable[k])
 const updated = Object.keys(installable).filter(
