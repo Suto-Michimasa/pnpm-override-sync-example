@@ -64,4 +64,4 @@ catalog:
 
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
-  - lodash
+  - defu
