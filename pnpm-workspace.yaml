@@ -68,3 +68,4 @@ minimumReleaseAgeExclude:
   - vite
   - hono
   - "@hono/node-server"
+  - defu
