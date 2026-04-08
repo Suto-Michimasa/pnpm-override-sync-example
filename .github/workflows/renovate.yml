@@ -11,8 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: renovatebot/github-action@e084b5ac6fd1613fb3fbb1e904afede498837498 # v42.1.0
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: app-token
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          app-id: ${{ vars.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+
+      - uses: renovatebot/github-action@b67590ea780158ccd13192c22a3655a5231f869d # v46.1.8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
         env:
           RENOVATE_ALLOWED_POST_UPGRADE_COMMANDS: '["^pnpm install"]'
