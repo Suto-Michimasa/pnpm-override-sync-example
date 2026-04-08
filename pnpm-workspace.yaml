@@ -67,3 +67,4 @@ minimumReleaseAgeExclude:
   - lodash
   - vite
   - hono
+  - "@hono/node-server"

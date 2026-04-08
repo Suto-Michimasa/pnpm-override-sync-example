@@ -12,9 +12,6 @@ catalogs:
     '@chromatic-com/storybook':
       specifier: ^5.0.0
       version: 5.1.1
-    '@hono/node-server':
-      specifier: ^1.14.0
-      version: 1.19.11
     '@hono/zod-openapi':
       specifier: ^0.19.0
       version: 0.19.10
@@ -184,6 +181,7 @@ catalogs:
 overrides:
   happy-dom: '>=20.8.9'
   effect: '>=3.20.0'
+  '@hono/node-server': '>=1.19.13'
 
 importers:
 
@@ -199,8 +197,8 @@ importers:
   packages/api:
     dependencies:
       '@hono/node-server':
-        specifier: 'catalog:'
-        version: 1.19.11(hono@4.12.12)
+        specifier: '>=1.19.13'
+        version: 1.19.13(hono@4.12.12)
       '@hono/zod-openapi':
         specifier: 'catalog:'
         version: 0.19.10(hono@4.12.12)(zod@3.25.76)
@@ -897,8 +895,8 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@hono/node-server@1.19.11':
-    resolution: {integrity: sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g==}
+  '@hono/node-server@1.19.13':
+    resolution: {integrity: sha512-TsQLe4i2gvoTtrHje625ngThGBySOgSK3Xo2XRYOdqGN1teR8+I7vchQC46uLJi8OF62YTYA3AhSpumtkhsaKQ==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -4092,7 +4090,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@hono/node-server@1.19.11(hono@4.12.12)':
+  '@hono/node-server@1.19.13(hono@4.12.12)':
     dependencies:
       hono: 4.12.12
 
