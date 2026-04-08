@@ -23,5 +23,7 @@
       "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"]
     }
   ],
-  "postUpdateOptions": ["pnpmDedupe"]
+  "constraints": {
+    "pnpm": ">=10.27.0"
+  }
 }
