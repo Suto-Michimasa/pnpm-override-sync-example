@@ -166,7 +166,7 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
     try {
       execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
       installable[pkg] = version
-    } catch {
+    } catch (e1: unknown) {
       console.log(
         `  Retrying with minimumReleaseAgeExclude: ${pkg}@${version}`,
       )
@@ -176,7 +176,12 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
       try {
         execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
         installable[pkg] = version
-      } catch {
+      } catch (e2: unknown) {
+        const stderr =
+          ((e2 as { stderr?: Buffer }).stderr ?? '').toString().trim()
+        if (stderr) {
+          console.log(`  Error: ${stderr.split('\n')[0]}`)
+        }
         const removed = excluded.pop()!
         scriptAddedExcludes.delete(removed)
         updateReleaseAgeExclude(excluded)
