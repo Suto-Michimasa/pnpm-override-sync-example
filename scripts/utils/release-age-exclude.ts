@@ -6,7 +6,7 @@ export function parseReleaseAgeExclude(content: string): string[] {
   return match[1]
     .split(/\r?\n/)
     .filter((line) => line.trim().startsWith('-'))
-    .map((line) => line.replace(/^ {2}- /, '').trim())
+    .map((line) => line.replace(/^ {2}- /, '').trim().replace(/^["']|["']$/g, ''))
 }
 
 export function applyReleaseAgeExclude(
@@ -20,7 +20,7 @@ export function applyReleaseAgeExclude(
   result = `${result.trimEnd()}\n`
   const unique = [...new Set(packages)]
   if (unique.length > 0) {
-    const entries = unique.map((p) => `  - ${p}`).join('\n')
+    const entries = unique.map((p) => p.startsWith('@') ? `  - "${p}"` : `  - ${p}`).join('\n')
     result += `minimumReleaseAgeExclude:\n${entries}\n`
   }
   return result

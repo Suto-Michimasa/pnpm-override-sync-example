@@ -61,6 +61,17 @@ minimumReleaseAgeExclude:
     const matches = result.match(/  - lodash/g)
     expect(matches).toHaveLength(1)
   })
+
+  test('スコープ付きパッケージ名をクォートする', () => {
+    const result = applyReleaseAgeExclude(base, ['@hono/node-server'])
+    expect(result).toContain('  - "@hono/node-server"\n')
+  })
+
+  test('スコープなしパッケージ名はクォートしない', () => {
+    const result = applyReleaseAgeExclude(base, ['lodash'])
+    expect(result).toContain('  - lodash\n')
+    expect(result).not.toContain('"lodash"')
+  })
 })
 
 describe('parseReleaseAgeExclude', () => {
@@ -86,5 +97,10 @@ describe('parseReleaseAgeExclude', () => {
   test('CRLF でもパースできる', () => {
     const content = `minimumReleaseAge: 10080\r\nminimumReleaseAgeExclude:\r\n  - lodash\r\n  - axios\r\n`
     expect(parseReleaseAgeExclude(content)).toEqual(['lodash', 'axios'])
+  })
+
+  test('クォート付きパッケージ名のクォートを除去する', () => {
+    const content = `${base}minimumReleaseAgeExclude:\n  - "@hono/node-server"\n`
+    expect(parseReleaseAgeExclude(content)).toEqual(['@hono/node-server'])
   })
 })
