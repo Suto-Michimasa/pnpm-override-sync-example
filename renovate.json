@@ -25,5 +25,10 @@
   ],
   "constraints": {
     "pnpm": ">=10.27.0"
+  },
+  "postUpgradeTasks": {
+    "commands": ["pnpm install --lockfile-only"],
+    "executionMode": "branch",
+    "fileFilters": ["pnpm-lock.yaml"]
   }
 }
