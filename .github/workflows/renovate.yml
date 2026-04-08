@@ -1,0 +1,18 @@
+name: Renovate
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: renovatebot/github-action@e084b5ac6fd1613fb3fbb1e904afede498837498 # v42.1.0
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+        env:
+          RENOVATE_ALLOWED_POST_UPGRADE_COMMANDS: '["^pnpm install"]'
