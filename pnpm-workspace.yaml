@@ -54,7 +54,7 @@ catalog:
   "recharts": "^2.15.0"
   "storybook": "^8.6.0"
   "tailwind-merge": "^3.3.0"
-  "tailwindcss": "^4.1.0"
+  "tailwindcss": "^4.2.2"
   "tailwindcss-animate": "^1.0.0"
   "tsx": "^4.19.0"
   "typescript": "^5.8.0"
