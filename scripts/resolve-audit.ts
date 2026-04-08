@@ -131,6 +131,7 @@ if (phase1Added.length > 0) {
 }
 const scriptAddedExcludes = new Set<string>(phase1Added)
 
+const skipped = new Set<string>()
 const MAX_AUDIT_ROUNDS = 5
 for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
   const result = audit()
@@ -139,7 +140,7 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
 
   const toApply: Record<string, string> = {}
   for (const [pkg, version] of Object.entries(needed)) {
-    if (installable[pkg] !== version) {
+    if (installable[pkg] !== version && !skipped.has(pkg)) {
       toApply[pkg] = version
     }
   }
@@ -180,6 +181,7 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
         scriptAddedExcludes.delete(removed)
         updateReleaseAgeExclude(excluded)
         console.log(`  Skipped: ${pkg}@${version}`)
+        skipped.add(pkg)
       }
     }
   }
