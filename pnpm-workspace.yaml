@@ -37,7 +37,7 @@ catalog:
   "clsx": "^2.1.1"
   "date-fns": "^4.1.0"
   "happy-dom": "^17.0.0"
-  "hono": "^4.7.0"
+  "hono": "^4.12.10"
   "knip": "^5.0.0"
   "lucide-react": "^0.510.0"
   "msw": "^2.12.0"
