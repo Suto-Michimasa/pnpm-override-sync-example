@@ -109,7 +109,7 @@ catalogs:
       specifier: ^4.12.10
       version: 4.12.12
     knip:
-      specifier: ^5.0.0
+      specifier: ^5.88.1
       version: 5.88.1
     lucide-react:
       specifier: ^0.510.0
