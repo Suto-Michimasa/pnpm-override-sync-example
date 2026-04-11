@@ -115,7 +115,7 @@ catalogs:
       specifier: ^0.510.0
       version: 0.510.0
     msw:
-      specifier: ^2.12.0
+      specifier: ^2.12.14
       version: 2.12.14
     msw-storybook-addon:
       specifier: ^2.0.0
