@@ -118,7 +118,7 @@ catalogs:
       specifier: ^2.12.14
       version: 2.12.14
     msw-storybook-addon:
-      specifier: ^2.0.0
+      specifier: ^2.0.6
       version: 2.0.6
     playwright:
       specifier: ^1.58.0
