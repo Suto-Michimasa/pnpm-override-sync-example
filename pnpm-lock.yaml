@@ -139,7 +139,7 @@ catalogs:
       specifier: ^19.1.0
       version: 19.2.4
     react-dropzone:
-      specifier: ^14.3.0
+      specifier: ^14.4.1
       version: 14.4.1
     react-hook-form:
       specifier: ^7.56.0
