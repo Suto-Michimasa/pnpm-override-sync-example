@@ -106,7 +106,7 @@ catalogs:
       specifier: ^4.1.0
       version: 4.1.0
     hono:
-      specifier: ^4.12.10
+      specifier: ^4.12.11
       version: 4.12.12
     knip:
       specifier: ^5.88.1
