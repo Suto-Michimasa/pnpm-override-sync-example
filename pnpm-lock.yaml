@@ -163,7 +163,7 @@ catalogs:
       specifier: ^1.0.7
       version: 1.0.7
     tsx:
-      specifier: ^4.19.0
+      specifier: ^4.21.0
       version: 4.21.0
     typescript:
       specifier: ^5.8.0
