@@ -91,7 +91,7 @@ catalogs:
       specifier: ^4.7.0
       version: 4.7.0
     '@vitest/coverage-v8':
-      specifier: ^3.2.0
+      specifier: ^3.2.4
       version: 3.2.4
     chromatic:
       specifier: ^12.2.0
@@ -172,7 +172,7 @@ catalogs:
       specifier: ^6.4.2
       version: 6.4.2
     vitest:
-      specifier: ^3.2.0
+      specifier: ^3.2.4
       version: 3.2.4
     zod:
       specifier: ^3.25.76
