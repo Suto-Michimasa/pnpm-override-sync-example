@@ -39,7 +39,7 @@ catalog:
   "happy-dom": "^17.0.0"
   "hono": "^4.12.12"
   "knip": "^5.88.1"
-  "lucide-react": "^0.510.0"
+  "lucide-react": "^0.577.0"
   "msw": "^2.12.14"
   "msw-storybook-addon": "^2.0.6"
   "playwright": "^1.58.0"
