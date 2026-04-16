@@ -67,16 +67,16 @@ catalogs:
       specifier: ^1.1.0
       version: 1.2.8
     '@storybook/addon-a11y':
-      specifier: ^8.6.0
+      specifier: ^8.6.18
       version: 8.6.18
     '@storybook/addon-docs':
-      specifier: ^8.6.0
+      specifier: ^8.6.18
       version: 8.6.18
     '@storybook/addon-links':
-      specifier: ^8.6.0
+      specifier: ^8.6.18
       version: 8.6.18
     '@storybook/react-vite':
-      specifier: ^8.6.0
+      specifier: ^8.6.18
       version: 8.6.18
     '@types/node':
       specifier: ^22.19.17
@@ -151,7 +151,7 @@ catalogs:
       specifier: ^2.15.4
       version: 2.15.4
     storybook:
-      specifier: ^8.6.0
+      specifier: ^8.6.18
       version: 8.6.18
     tailwind-merge:
       specifier: ^3.5.0
