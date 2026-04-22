@@ -10,8 +10,8 @@ catalogs:
       specifier: ^2.4.11
       version: 2.4.12
     '@chromatic-com/storybook':
-      specifier: ^5.1.1
-      version: 5.1.1
+      specifier: ^5.1.2
+      version: 5.1.2
     '@hono/node-server':
       specifier: ^1.14.0
       version: 1.19.14
@@ -325,7 +325,7 @@ importers:
     devDependencies:
       '@chromatic-com/storybook':
         specifier: 'catalog:'
-        version: 5.1.1(storybook@8.6.18)
+        version: 5.1.2(storybook@8.6.18)
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.58.2
@@ -549,8 +549,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@chromatic-com/storybook@5.1.1':
-    resolution: {integrity: sha512-BPoAXHM71XgeCK2u0jKr9i8apeQMm/Z9IWGyndA2FMijfQG9m8ox45DdWh/pxFkK5ClhGgirv5QwMhFIeHmThg==}
+  '@chromatic-com/storybook@5.1.2':
+    resolution: {integrity: sha512-H/hgvwC3E+OtseP2OT2QYUJH2VfnzT6wM3pWOkaNV6g7QI+VUdWJbeJ3o2jFqvEPQNqzhQKWDOlvM4lu+7is6g==}
     engines: {node: '>=20.0.0', yarn: '>=1.22.18'}
     peerDependencies:
       storybook: ^0.0.0-0 || ^10.1.0 || ^10.1.0-0 || ^10.2.0-0 || ^10.3.0-0 || ^10.4.0-0
@@ -3886,7 +3886,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.4.12':
     optional: true
 
-  '@chromatic-com/storybook@5.1.1(storybook@8.6.18)':
+  '@chromatic-com/storybook@5.1.2(storybook@8.6.18)':
     dependencies:
       '@neoconfetti/react': 1.0.0
       chromatic: 13.3.5
