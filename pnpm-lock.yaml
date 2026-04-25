@@ -97,8 +97,8 @@ catalogs:
       specifier: ^3.2.4
       version: 3.2.4
     chromatic:
-      specifier: ^12.2.0
-      version: 12.2.0
+      specifier: ^16.3.0
+      version: 16.3.0
     class-variance-authority:
       specifier: ^0.7.1
       version: 0.7.1
@@ -358,7 +358,7 @@ importers:
         version: 3.2.4(vitest@3.2.4(@types/node@22.19.17)(happy-dom@20.8.9)(jiti@2.6.1)(lightningcss@1.32.0)(msw@2.13.4(@types/node@22.19.17)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.3))
       chromatic:
         specifier: 'catalog:'
-        version: 12.2.0
+        version: 16.3.0
       happy-dom:
         specifier: '>=20.8.9'
         version: 20.8.9
@@ -2266,18 +2266,6 @@ packages:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
 
-  chromatic@12.2.0:
-    resolution: {integrity: sha512-GswmBW9ZptAoTns1BMyjbm55Z7EsIJnUvYKdQqXIBZIKbGErmpA+p4c0BYA+nzw5B0M+rb3Iqp1IaH8TFwIQew==}
-    hasBin: true
-    peerDependencies:
-      '@chromatic-com/cypress': ^0.*.* || ^1.0.0
-      '@chromatic-com/playwright': ^0.*.* || ^1.0.0
-    peerDependenciesMeta:
-      '@chromatic-com/cypress':
-        optional: true
-      '@chromatic-com/playwright':
-        optional: true
-
   chromatic@13.3.5:
     resolution: {integrity: sha512-MzPhxpl838qJUo0A55osCF2ifwPbjcIPeElr1d4SHcjnHoIcg7l1syJDrAYK/a+PcCBrOGi06jPNpQAln5hWgw==}
     hasBin: true
@@ -2288,6 +2276,21 @@ packages:
       '@chromatic-com/cypress':
         optional: true
       '@chromatic-com/playwright':
+        optional: true
+
+  chromatic@16.3.0:
+    resolution: {integrity: sha512-PvXUpXP3l8p2NxLEYhMgo4kGNNBQgCgbslMu+O4Bb37ujiiDWk8QExX/Jk7JeHUewNgK2wg98rtw3gdfz3U+Kg==}
+    hasBin: true
+    peerDependencies:
+      '@chromatic-com/cypress': ^0.*.* || ^1.0.0
+      '@chromatic-com/playwright': ^0.*.* || ^1.0.0
+      '@chromatic-com/vitest': ^0.*.* || ^1.0.0
+    peerDependenciesMeta:
+      '@chromatic-com/cypress':
+        optional: true
+      '@chromatic-com/playwright':
+        optional: true
+      '@chromatic-com/vitest':
         optional: true
 
   citty@0.1.6:
@@ -5463,9 +5466,9 @@ snapshots:
     dependencies:
       readdirp: 4.1.2
 
-  chromatic@12.2.0: {}
-
   chromatic@13.3.5: {}
+
+  chromatic@16.3.0: {}
 
   citty@0.1.6:
     dependencies:
