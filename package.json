@@ -14,7 +14,7 @@
   },
   "pnpm": {
     "overrides": {
-      "happy-dom": ">=20.8.9",
+      "happy-dom": ">=20.9.0",
       "hono": ">=4.12.14"
     }
   }
