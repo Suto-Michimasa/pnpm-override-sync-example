@@ -38,7 +38,7 @@ catalog:
   "date-fns": "^4.1.0"
   "happy-dom": "^17.6.3"
   "hono": "^4.12.14"
-  "knip": "^5.88.1"
+  "knip": "^6.4.1"
   "lucide-react": "^0.577.0"
   "msw": "^2.13.4"
   "msw-storybook-addon": "^2.0.7"
