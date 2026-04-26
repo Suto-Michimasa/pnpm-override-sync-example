@@ -1,7 +1,7 @@
 {
   "name": "pnpm-override-sync-example",
   "private": true,
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "check": "biome check .",
     "check/fix": "biome check --write .",
