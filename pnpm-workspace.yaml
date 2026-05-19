@@ -69,3 +69,4 @@ minimumReleaseAgeExclude:
   - hono
   - "@hono/node-server"
   - defu
+  - ws
