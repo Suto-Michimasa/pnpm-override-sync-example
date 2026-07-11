@@ -42,7 +42,7 @@ jobs:
 
           git checkout -B "$BRANCH"
 
-          git add package.json pnpm-lock.yaml pnpm-workspace.yaml
+          git add pnpm-lock.yaml pnpm-workspace.yaml
           git commit -m "chore(deps): sync pnpm overrides with audit results"
           git push -u origin "$BRANCH" --force
 

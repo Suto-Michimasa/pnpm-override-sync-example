@@ -1,6 +1,6 @@
 export function parseReleaseAgeExclude(content: string): string[] {
   const match = content.match(
-    /minimumReleaseAgeExclude:\r?\n(( {2}- .+\r?\n?)*)/,
+    /minimumReleaseAgeExclude:\r?\n(( {2}(?:-|#) .+\r?\n?)*)/,
   )
   if (!match) return []
   return match[1]
@@ -14,7 +14,7 @@ export function applyReleaseAgeExclude(
   packages: string[],
 ): string {
   let result = content.replace(
-    /minimumReleaseAgeExclude:\r?\n( {2}- .+\r?\n?)*/,
+    /minimumReleaseAgeExclude:\r?\n( {2}(?:-|#) .+\r?\n?)*/,
     '',
   )
   result = `${result.trimEnd()}\n`
