@@ -1,6 +1,6 @@
 # pnpm-override-sync-example
 
-`pnpm audit` の結果に基づいて `pnpm.overrides` と `minimumReleaseAgeExclude` を毎日ゼロベースで再計算し、自動同期する仕組みのサンプルリポジトリです。
+`pnpm audit` の結果に基づいて `pnpm-workspace.yaml` の `overrides` と `minimumReleaseAgeExclude` を毎日ゼロベースで再計算し、自動同期する仕組みのサンプルリポジトリです。
 
 > このリポジトリは記事の説明用に作成した架空のプロジェクトです。実際のプロダクトではありません。
 
@@ -17,10 +17,14 @@
 ├── scripts/
 │   ├── resolve-audit.ts            # override 自動同期スクリプト
 │   └── utils/
-│       ├── override-versions.ts    # patched_versions の比較ロジック
+│       ├── override-pnpm-workspace.ts      # pnpm-workspace.yaml の overrides 操作
+│       ├── override-pnpm-workspace.test.ts
+│       ├── override-versions.ts            # patched_versions の比較ロジック
 │       ├── override-versions.test.ts
-│       ├── release-age-exclude.ts  # minimumReleaseAgeExclude の更新ロジック
-│       └── release-age-exclude.test.ts
+│       ├── release-age-exclude.ts          # minimumReleaseAgeExclude の更新ロジック
+│       ├── release-age-exclude.test.ts
+│       ├── retry-with-release-age.ts       # minimumReleaseAge エラーのリトライ
+│       └── retry-with-release-age.test.ts
 ├── .github/workflows/
 │   ├── resolve-audit.yml           # 毎日 UTC 0:00 実行の同期ワークフロー
 │   └── audit.yml                   # push / PR 時の脆弱性チェック

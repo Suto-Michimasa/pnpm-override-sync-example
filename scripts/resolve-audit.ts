@@ -1,34 +1,29 @@
 import { execSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
+import {
+  applyOverrides,
+  parseOverrides,
+} from './utils/override-pnpm-workspace.ts'
 import { collectNeeded } from './utils/override-versions.ts'
 import {
   applyReleaseAgeExclude,
   parseReleaseAgeExclude,
 } from './utils/release-age-exclude.ts'
+import {
+  parseReleaseAgeFailedPackage,
+  retryWithReleaseAge,
+} from './utils/retry-with-release-age.ts'
 
-const PKG_PATH = 'package.json'
 const WORKSPACE_PATH = 'pnpm-workspace.yaml'
+
+function updateOverrides(overrides: Record<string, string>): void {
+  const content = readFileSync(WORKSPACE_PATH, 'utf8')
+  writeFileSync(WORKSPACE_PATH, applyOverrides(content, overrides))
+}
 
 function updateReleaseAgeExclude(packages: string[]): void {
   const content = readFileSync(WORKSPACE_PATH, 'utf8')
   writeFileSync(WORKSPACE_PATH, applyReleaseAgeExclude(content, packages))
-}
-
-const RELEASE_AGE_ERROR = 'ERR_PNPM_NO_MATURE_MATCHING_VERSION'
-
-function parseReleaseAgeErrorPackage(stdout: string): string | undefined {
-  const match = stdout.match(
-    /of\s+(\S+)\s+does not meet the minimumReleaseAge constraint/,
-  )
-  return match?.[1]
-}
-
-interface PackageJson {
-  pnpm?: {
-    overrides?: Record<string, string>
-    [key: string]: unknown
-  }
-  [key: string]: unknown
 }
 
 interface AuditAdvisory {
@@ -49,41 +44,36 @@ function audit(): AuditResult {
     })
     return JSON.parse(output)
   } catch (e: unknown) {
-    // pnpm audit は脆弱性があると非ゼロで終了するため catch 側でもパースする
     const stdout = (e as { stdout?: string }).stdout ?? ''
     try {
       return JSON.parse(stdout)
     } catch {
-      // registry エラー等で JSON が返らない場合、空結果で続行すると
-      // 全 override が不要と誤判定されるため失敗させる
       throw new Error('pnpm audit did not return valid JSON')
     }
   }
 }
 
-function writePkg(pkg: PackageJson): void {
-  writeFileSync(PKG_PATH, `${JSON.stringify(pkg, null, 2)}\n`)
+function basePackageName(p: string): string {
+  if (p.startsWith('@')) {
+    const slashIdx = p.indexOf('/')
+    if (slashIdx < 0) return p
+    const atIdx = p.indexOf('@', slashIdx + 1)
+    return atIdx >= 0 ? p.slice(0, atIdx) : p
+  }
+  const atIdx = p.indexOf('@')
+  return atIdx >= 0 ? p.slice(0, atIdx) : p
 }
 
-const original: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
-const originalOverrides = original.pnpm?.overrides ?? {}
+const originalWorkspaceContent = readFileSync(WORKSPACE_PATH, 'utf8')
+const originalOverrides = parseOverrides(originalWorkspaceContent)
+const originalExcluded = parseReleaseAgeExclude(originalWorkspaceContent)
 
 console.log('Removing all overrides and updating dependencies...')
-const clean: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
-if (clean.pnpm?.overrides) {
-  delete clean.pnpm.overrides
-}
-if (clean.pnpm && Object.keys(clean.pnpm).length === 0) {
-  delete clean.pnpm
-}
-writePkg(clean)
-// pnpm update -r（全パッケージ更新）は catalog の specifier を壊すため、
-// override 対象パッケージだけを指定して更新する。
+updateOverrides({})
 const overridePackageNames = Object.keys(originalOverrides)
-const phase1Excluded: string[] = parseReleaseAgeExclude(
-  readFileSync(WORKSPACE_PATH, 'utf8'),
-)
-const phase1ExcludedInitialLength = phase1Excluded.length
+
+const phase1Excluded: string[] = [...originalExcluded]
+updateReleaseAgeExclude(phase1Excluded)
 
 function runUpdate(): void {
   if (overridePackageNames.length > 0) {
@@ -97,39 +87,29 @@ function runUpdate(): void {
 }
 
 const MAX_RETRIES = 10
-for (let i = 0; ; i++) {
-  try {
-    runUpdate()
-    break
-  } catch (e: unknown) {
-    const stdout = ((e as { stdout?: Buffer }).stdout ?? '').toString()
-    const pkg = stdout.includes(RELEASE_AGE_ERROR)
-      ? parseReleaseAgeErrorPackage(stdout)
-      : undefined
-    if (!pkg || i + 1 >= MAX_RETRIES) {
-      throw e
-    }
-    console.log(
-      `  Adding ${pkg} to minimumReleaseAgeExclude and retrying...`,
-    )
+const phase1Result = retryWithReleaseAge({
+  run: runUpdate,
+  onAdd: (pkg) => {
+    console.log(`  Adding ${pkg} to minimumReleaseAgeExclude and retrying...`)
     phase1Excluded.push(pkg)
     updateReleaseAgeExclude(phase1Excluded)
-  }
+  },
+  isExcluded: (pkg) => phase1Excluded.includes(pkg),
+  maxRetries: MAX_RETRIES,
+})
+if (!phase1Result.success) {
+  throw phase1Result.lastError ?? new Error('pnpm update failed')
 }
 
-// pnpm update が pnpm-workspace.yaml の catalog を壊すため即座に復元する
 execSync(`git checkout -- ${WORKSPACE_PATH}`, { stdio: 'pipe' })
 
 const installable: Record<string, string> = {}
-const phase1Added = phase1Excluded.slice(phase1ExcludedInitialLength)
-const excluded: string[] = [
-  ...parseReleaseAgeExclude(readFileSync(WORKSPACE_PATH, 'utf8')),
-  ...phase1Added,
-]
-if (phase1Added.length > 0) {
-  updateReleaseAgeExclude(excluded)
-}
-const scriptAddedExcludes = new Set<string>(phase1Added)
+const excluded: string[] = [...phase1Excluded]
+updateOverrides(installable)
+updateReleaseAgeExclude(excluded)
+const scriptAddedExcludes = new Set<string>(
+  phase1Excluded.filter((p) => !originalExcluded.includes(p)),
+)
 
 const skipped = new Set<string>()
 const MAX_AUDIT_ROUNDS = 5
@@ -157,55 +137,54 @@ for (let round = 0; round < MAX_AUDIT_ROUNDS; round++) {
   }
 
   for (const [pkg, version] of Object.entries(toApply)) {
-    const trial: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
-    if (!trial.pnpm) {
-      trial.pnpm = {}
-    }
-    trial.pnpm.overrides = { ...installable, [pkg]: version }
-    writePkg(trial)
-    try {
-      execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
-      installable[pkg] = version
-    } catch (e1: unknown) {
-      console.log(
-        `  Retrying with minimumReleaseAgeExclude: ${pkg}@${version}`,
-      )
-      excluded.push(pkg)
-      scriptAddedExcludes.add(pkg)
-      updateReleaseAgeExclude(excluded)
+    updateOverrides({ ...installable, [pkg]: version })
+
+    const addedForThisPkg: string[] = []
+    let success = false
+    let lastError: unknown
+    for (let i = 0; i < MAX_RETRIES; i++) {
       try {
         execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
-        installable[pkg] = version
-      } catch (e2: unknown) {
-        const stderr =
-          ((e2 as { stderr?: Buffer }).stderr ?? '').toString().trim()
-        if (stderr) {
-          console.log(`  Error: ${stderr.split('\n')[0]}`)
-        }
-        const removed = excluded.pop()!
-        scriptAddedExcludes.delete(removed)
+        success = true
+        break
+      } catch (e: unknown) {
+        lastError = e
+        const stdout = ((e as { stdout?: Buffer }).stdout ?? '').toString()
+        const failingPkg = parseReleaseAgeFailedPackage(stdout)
+        if (!failingPkg || excluded.includes(failingPkg)) break
+        console.log(
+          `  Adding ${failingPkg} to minimumReleaseAgeExclude and retrying...`,
+        )
+        excluded.push(failingPkg)
+        scriptAddedExcludes.add(failingPkg)
+        addedForThisPkg.push(failingPkg)
         updateReleaseAgeExclude(excluded)
-        console.log(`  Skipped: ${pkg}@${version}`)
-        skipped.add(pkg)
       }
+    }
+
+    if (success) {
+      installable[pkg] = version
+    } else {
+      const stderr = ((lastError as { stderr?: Buffer }).stderr ?? '')
+        .toString()
+        .trim()
+      if (stderr) {
+        console.log(`  Error: ${stderr.split('\n')[0]}`)
+      }
+      for (const p of [...addedForThisPkg].reverse()) {
+        const idx = excluded.lastIndexOf(p)
+        if (idx >= 0) excluded.splice(idx, 1)
+        scriptAddedExcludes.delete(p)
+      }
+      updateReleaseAgeExclude(excluded)
+      console.log(`  Skipped: ${pkg}@${version}`)
+      skipped.add(pkg)
     }
   }
 
-  const current: PackageJson = JSON.parse(readFileSync(PKG_PATH, 'utf8'))
-  if (Object.keys(installable).length > 0) {
-    if (!current.pnpm) {
-      current.pnpm = {}
-    }
-    current.pnpm.overrides = installable
-  } else if (current.pnpm?.overrides) {
-    delete current.pnpm.overrides
-    if (Object.keys(current.pnpm).length === 0) {
-      delete current.pnpm
-    }
-  }
-  writePkg(current)
+  updateOverrides(installable)
   updateReleaseAgeExclude(
-    excluded.filter((p) => !scriptAddedExcludes.has(p) || installable[p]),
+    excluded.filter((p) => !scriptAddedExcludes.has(p) || !!installable[basePackageName(p)]),
   )
   execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
 
@@ -241,17 +220,31 @@ if (updated.length > 0) {
   )
 }
 if (kept.length > 0) {
-  console.log(
-    `  Kept: ${kept.map((k) => `${k}@${installable[k]}`).join(', ')}`,
-  )
+  console.log(`  Kept: ${kept.map((k) => `${k}@${installable[k]}`).join(', ')}`)
 }
 
-const hasChanges = added.length > 0 || removed.length > 0 || updated.length > 0
+if (installable.esbuild) {
+  const current = parseReleaseAgeExclude(readFileSync(WORKSPACE_PATH, 'utf8'))
+  const needed = ['@esbuild/*', 'esbuild'].filter((p) => !current.includes(p))
+  if (needed.length > 0) {
+    updateReleaseAgeExclude([...current, ...needed])
+    execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
+  }
+}
+
+const finalExcluded = parseReleaseAgeExclude(
+  readFileSync(WORKSPACE_PATH, 'utf8'),
+)
+const excludeChanged =
+  finalExcluded.length !== originalExcluded.length ||
+  finalExcluded.some((p) => !originalExcluded.includes(p))
+
+const hasChanges =
+  added.length > 0 || removed.length > 0 || updated.length > 0 || excludeChanged
 
 if (!hasChanges) {
   console.log('\nNo changes needed.')
-  writePkg(original)
-  execSync(`git checkout -- ${WORKSPACE_PATH}`, { stdio: 'pipe' })
+  writeFileSync(WORKSPACE_PATH, originalWorkspaceContent)
   execSync('pnpm install --lockfile-only', { stdio: 'pipe' })
   process.exit(0)
 }
