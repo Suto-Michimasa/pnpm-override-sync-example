@@ -62,7 +62,7 @@ catalog:
   "tailwindcss-animate": "^1.0.7"
   "tsx": "^4.21.0"
   "typescript": "^5.9.3"
-  "vite": "^6.4.2"
+  "vite": "^6.4.3"
   "vitest": "^3.2.4"
   "zod": "^3.25.76"
 
