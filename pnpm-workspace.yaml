@@ -10,7 +10,7 @@ catalog:
   "@chromatic-com/storybook": "^5.2.1"
   "@hono/node-server": "^1.19.14"
   "@hono/zod-openapi": "^0.19.10"
-  "@hookform/resolvers": "^5.2.2"
+  "@hookform/resolvers": "^5.4.0"
   "@prisma/client": "^6.19.3"
   "@playwright/test": "^1.59.1"
   "@radix-ui/react-accordion": "^1.2.15"
