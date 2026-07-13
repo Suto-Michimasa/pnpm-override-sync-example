@@ -39,7 +39,7 @@ catalog:
   "chromatic": "^12.2.0"
   "class-variance-authority": "^0.7.1"
   "clsx": "^2.1.1"
-  "date-fns": "^4.1.0"
+  "date-fns": "^4.4.0"
   "happy-dom": "^17.6.3"
   "hono": "^4.12.27"
   "knip": "^5.88.1"
