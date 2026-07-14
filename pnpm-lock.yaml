@@ -142,8 +142,8 @@ catalogs:
       specifier: ^14.4.1
       version: 14.4.1
     react-hook-form:
-      specifier: ^7.72.1
-      version: 7.72.1
+      specifier: ^7.81.0
+      version: 7.81.0
     react-icons:
       specifier: ^5.6.0
       version: 5.6.0
@@ -231,7 +231,7 @@ importers:
     dependencies:
       '@hookform/resolvers':
         specifier: 'catalog:'
-        version: 5.4.0(react-hook-form@7.72.1(react@19.2.7))
+        version: 5.4.0(react-hook-form@7.81.0(react@19.2.7))
       '@radix-ui/react-accordion':
         specifier: 'catalog:'
         version: 1.2.15(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -303,7 +303,7 @@ importers:
         version: 14.4.1(react@19.2.7)
       react-hook-form:
         specifier: 'catalog:'
-        version: 7.72.1(react@19.2.7)
+        version: 7.81.0(react@19.2.7)
       react-icons:
         specifier: 'catalog:'
         version: 5.6.0(react@19.2.7)
@@ -3121,8 +3121,8 @@ packages:
     peerDependencies:
       react: '>= 16.8 || 18.0.0'
 
-  react-hook-form@7.72.1:
-    resolution: {integrity: sha512-RhwBoy2ygeVZje+C+bwJ8g0NjTdBmDlJvAUHTxRjTmSUKPYsKfMphkS2sgEMotsY03bP358yEYlnUeZy//D9Ig==}
+  react-hook-form@7.81.0:
+    resolution: {integrity: sha512-ocbmr2p5KBMoAfj4WCUvped33lVi1Kd5DuDUvQDnB6VEAacOjPI/jMbtDdbhco4y9ct4xUuCmMY0b/C9L0QHjw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -4087,10 +4087,10 @@ snapshots:
       hono: 4.12.29
       zod: 3.25.76
 
-  '@hookform/resolvers@5.4.0(react-hook-form@7.72.1(react@19.2.7))':
+  '@hookform/resolvers@5.4.0(react-hook-form@7.81.0(react@19.2.7))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.72.1(react@19.2.7)
+      react-hook-form: 7.81.0(react@19.2.7)
 
   '@inquirer/ansi@2.0.5': {}
 
@@ -6275,7 +6275,7 @@ snapshots:
       prop-types: 15.8.1
       react: 19.2.7
 
-  react-hook-form@7.72.1(react@19.2.7):
+  react-hook-form@7.81.0(react@19.2.7):
     dependencies:
       react: 19.2.7
 
