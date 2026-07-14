@@ -44,7 +44,7 @@ catalog:
   "hono": "^4.12.27"
   "knip": "^5.88.1"
   "lucide-react": "^0.577.0"
-  "msw": "^2.13.4"
+  "msw": "^2.14.6"
   "msw-storybook-addon": "^2.0.7"
   "playwright": "^1.59.1"
   "postcss": "^8.5.16"
