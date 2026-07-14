@@ -3,7 +3,7 @@ packages:
 
 overrides:
   happy-dom: ">=20.10.6"
-  hono: ">=4.12.27"
+  hono: ">=4.12.28"
 
 catalog:
   "@biomejs/biome": "^2.5.2"
@@ -41,7 +41,7 @@ catalog:
   "clsx": "^2.1.1"
   "date-fns": "^4.4.0"
   "happy-dom": "^17.6.3"
-  "hono": "^4.12.27"
+  "hono": "^4.12.28"
   "knip": "^5.88.1"
   "lucide-react": "^0.577.0"
   "msw": "^2.14.6"
