@@ -2,7 +2,7 @@ packages:
   - 'packages/*'
 
 overrides:
-  happy-dom: ">=20.9.0"
+  happy-dom: ">=20.10.6"
   hono: ">=4.12.27"
 
 catalog:
