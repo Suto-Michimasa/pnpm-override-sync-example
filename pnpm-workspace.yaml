@@ -57,7 +57,7 @@ catalog:
   "react-icons": "^5.7.0"
   "recharts": "^2.15.4"
   "storybook": "^8.6.18"
-  "tailwind-merge": "^3.5.0"
+  "tailwind-merge": "^3.6.0"
   "tailwindcss": "^4.2.2"
   "tailwindcss-animate": "^1.0.7"
   "tsx": "^4.21.0"
