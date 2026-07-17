@@ -24,7 +24,7 @@
     }
   ],
   "constraints": {
-    "pnpm": ">=10.27.0"
+    "pnpm": ">=10.34.4"
   },
   "postUpgradeTasks": {
     "commands": ["pnpm install --lockfile-only"],
