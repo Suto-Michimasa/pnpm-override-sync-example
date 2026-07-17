@@ -36,7 +36,7 @@ catalog:
   "@types/react-dom": "^19.2.3"
   "@vitejs/plugin-react": "^4.7.0"
   "@vitest/coverage-v8": "^3.2.7"
-  "chromatic": "^12.2.0"
+  "chromatic": "^18.0.1"
   "class-variance-authority": "^0.7.1"
   "clsx": "^2.1.1"
   "date-fns": "^4.4.0"
