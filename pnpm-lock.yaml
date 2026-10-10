@@ -112,8 +112,8 @@ catalogs:
       specifier: ^5.88.1
       version: 5.88.1
     lucide-react:
-      specifier: ^0.577.0
-      version: 0.577.0
+      specifier: ^1.50.0
+      version: 1.51.0
     msw:
       specifier: ^2.15.0
       version: 2.15.0
@@ -285,7 +285,7 @@ importers:
         version: 4.4.0
       lucide-react:
         specifier: 'catalog:'
-        version: 0.577.0(react@19.2.7)
+        version: 1.51.0(@types/react@19.2.17)(react@19.2.7)
       msw:
         specifier: 'catalog:'
         version: 2.15.0(@types/node@22.20.1)(typescript@5.9.3)
@@ -3040,10 +3040,14 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@0.577.0:
-    resolution: {integrity: sha512-4LjoFv2eEPwYDPg/CUdBJQSDfPyzXCRrVW1X7jrx/trgxnxkHFjnVZINbzvzxjN70dxychOfg+FTYwBiS3pQ5A==}
+  lucide-react@1.51.0:
+    resolution: {integrity: sha512-9929jimol5y7VbXUlVKcgURMSeIxFJB7dtWCkRAaNnF7KiCRkSkhmqWPUmAmUFYPezNawFk6qvz3Mu0gEnfI4g==}
     peerDependencies:
+      '@types/react': '*'
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -6275,9 +6279,11 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@0.577.0(react@19.2.7):
+  lucide-react@1.51.0(@types/react@19.2.17)(react@19.2.7):
     dependencies:
       react: 19.2.7
+    optionalDependencies:
+      '@types/react': 19.2.17
 
   lz-string@1.5.0: {}
 
