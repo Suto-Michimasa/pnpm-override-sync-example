@@ -8,6 +8,9 @@
 
 [脆弱性対応と minimumReleaseAge を両立しながら依存管理をクリーンに保つ](https://zenn.dev/pksha/articles/audit-override-auto-sync)
 
+> [!NOTE]
+> pnpm v11 以降は [`pnpm audit --fix`](https://pnpm.io/cli/audit#--fix) が修正版を `minimumReleaseAgeExclude` に追加するところまで行うため、このリポジトリのスクリプトの大部分は pnpm 標準の機能で置き換えられます。このリポジトリは記事の説明用に、自作スクリプトの実装を残しています。
+
 ## 構成
 
 ```
